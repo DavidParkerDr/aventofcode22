@@ -30,12 +30,10 @@
                 currentElfCalories += itemCalories;
             }
             int highestElfCalories = 0;
-            foreach(int calories in allElvesCalories)
+            allElvesCalories.Sort((a, b) => b.CompareTo(a));
+            for(int i = 0; i < 3; i++)
             {
-                if (calories > highestElfCalories)
-                {
-                    highestElfCalories = calories;
-                }
+                highestElfCalories += allElvesCalories[i];
             }
             Console.WriteLine(highestElfCalories);
         }
