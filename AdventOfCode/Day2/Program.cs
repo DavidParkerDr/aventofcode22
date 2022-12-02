@@ -22,36 +22,80 @@
                 string[] inputs = input.Split(' ');
 
                 
-                Move yourMove = null;
+                
+                int roundScore = 0;
+
                 switch (inputs[1])
                 {
                     case "X":
-                        yourMove = new Rock();
+                        //lose
                         break;
                     case "Y":
-                        yourMove = new Paper();
+                        //draw
                         break;
                     case "Z":
-                        yourMove = new Scissors();
+                        //win
                         break;
                 }
-                int roundScore = 0;
 
                 switch (inputs[0])
                 {
                     case "A":
                         Rock rockMove = new Rock();
-                        roundScore = yourMove.Fight(rockMove);
+                        switch (inputs[1])
+                        {
+                            case "X":
+                                //lose
+                                roundScore = rockMove.Lose();
+                                break;
+                            case "Y":
+                                //draw
+                                roundScore = rockMove.Draw();
+                                break;
+                            case "Z":
+                                //win
+                                roundScore = rockMove.Win();
+                                break;
+                        }
                         break;
                     case "B":
                         Paper paperMove = new Paper();
-                        roundScore = yourMove.Fight(paperMove);
+                        switch (inputs[1])
+                        {
+                            case "X":
+                                //lose
+                                roundScore = paperMove.Lose();
+                                break;
+                            case "Y":
+                                //draw
+                                roundScore = paperMove.Draw();
+                                break;
+                            case "Z":
+                                //win
+                                roundScore = paperMove.Win();
+                                break;
+                        }
                         break;
                     case "C":
                         Scissors scissorsMove = new Scissors();
-                        roundScore = yourMove.Fight(scissorsMove);
+                        switch (inputs[1])
+                        {
+                            case "X":
+                                //lose
+                                roundScore = scissorsMove.Lose();
+                                break;
+                            case "Y":
+                                //draw
+                                roundScore = scissorsMove.Draw();
+                                break;
+                            case "Z":
+                                //win
+                                roundScore = scissorsMove.Win();
+                                break;
+                        }
                         break;
                 }
+                
                 totalScore += roundScore;
             }
             Console.WriteLine(totalScore);

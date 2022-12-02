@@ -13,20 +13,17 @@ namespace Day2
         {
             Score = score;
         }
-        public virtual int Fight(Rock other)
+        public virtual int Lose()
         {
-            //draw
+            return 0 + Score;
+        }
+        public virtual int Draw()
+        {
             return 3 + Score;
         }
-        public virtual int Fight(Scissors other)
+        public virtual int Win()
         {
-            //win
             return 6 + Score;
-        }
-        public virtual int Fight(Paper other)
-        {
-            //loss
-            return 0 + Score;
         }
     }
 }

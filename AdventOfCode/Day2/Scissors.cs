@@ -12,20 +12,20 @@ namespace Day2
         {
         }
 
-        public override int Fight(Rock other)
+        public override int Lose()
         {
-            //loss
-            return 0 + Score;
+            Move yourMove = new Paper();
+            return 0 + yourMove.Score;
         }
-        public override int Fight(Scissors other)
+        public override int Draw()
         {
-            //draw
-            return 3 + Score;
+            Move yourMove = new Scissors();
+            return 3 + yourMove.Score;
         }
-        public override int Fight(Paper other)
+        public override int Win()
         {
-            //win
-            return 6 + Score;
+            Move yourMove = new Rock();
+            return 6 + yourMove.Score;
         }
     }
 }
