@@ -11,6 +11,7 @@
             }
             bool complete = false;
             int totalScore = 0;
+            List<string> rucksacks = new List<string>();
             while (!complete)
             {
                 string input = Console.ReadLine();
@@ -19,24 +20,22 @@
                     complete = true;
                     continue;
                 }
-                int numberOfItems = input.Length;
-                int halfIndex = numberOfItems / 2;
-
-                string firstHalf = input.Substring(0, halfIndex);
-                string secondHalf = input.Substring(halfIndex);
-                char duplicateItem = ' ';
-                foreach(char c in firstHalf)
+                rucksacks.Add(input);
+                if (rucksacks.Count == 3)
                 {
-                    if(secondHalf.Contains(c))
+                    char duplicateItem = ' ';
+                    foreach (char c in rucksacks[0])
                     {
-                        duplicateItem = c;
-                        break;
+                        if (rucksacks[1].Contains(c) && rucksacks[2].Contains(c))
+                        {
+                            duplicateItem = c;
+                            break;
+                        }
                     }
+                    int value = calculateValue(duplicateItem);
+                    totalScore += value;
+                    rucksacks.Clear();
                 }
-                int value = calculateValue(duplicateItem);
-                totalScore += value;
-                printRuckSack(firstHalf, secondHalf, duplicateItem);
-                Console.WriteLine(value);
             }
             
             Console.WriteLine(totalScore);
