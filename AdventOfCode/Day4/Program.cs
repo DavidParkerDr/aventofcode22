@@ -28,7 +28,7 @@
                 int secondTaskLowerBound = int.Parse(secondTaskRange[0]);
                 int secondTaskUpperBound = int.Parse(secondTaskRange[1]);
 
-                if((firstTaskLowerBound >= secondTaskLowerBound && firstTaskUpperBound <= secondTaskUpperBound)|| (secondTaskLowerBound >= firstTaskLowerBound && secondTaskUpperBound <= firstTaskUpperBound))
+                if((firstTaskLowerBound >= secondTaskLowerBound && firstTaskLowerBound <= secondTaskUpperBound)|| (secondTaskLowerBound >= firstTaskLowerBound && secondTaskLowerBound <= firstTaskUpperBound))
                 {
                     count++;
                 }
