@@ -61,10 +61,17 @@
                 int number = int.Parse(inputs[1]);
                 int start = int.Parse(inputs[3]) - 1;
                 int end = int.Parse(inputs[5]) - 1;
+                Stack<char> tempStack = new Stack<char>();
                 for(int i = 0; i < number; i++)
                 {
                     char top = stacks[start].Peek();
                     stacks[start].Pop();
+                    tempStack.Push(top);
+                }
+                for (int i = 0; i < number; i++)
+                {
+                    char top = tempStack.Peek();
+                    tempStack.Pop();
                     stacks[end].Push(top);
                 }
             }
