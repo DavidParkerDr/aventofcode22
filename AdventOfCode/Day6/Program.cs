@@ -16,7 +16,7 @@
             {
                 char c = input[i];
                 queue.Enqueue(c);
-                if (i > 3)
+                if (i > 13)
                 {
                     queue.Dequeue();
                     if (IsUnique(queue))
