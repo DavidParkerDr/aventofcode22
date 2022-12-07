@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using static System.Net.WebRequestMethods;
 
 namespace Day7
 {
@@ -16,6 +17,8 @@ namespace Day7
             Stack<Directory> stack = new Stack<Directory>();
             List<Directory> justRight = new List<Directory>();
             stack.Push(rootDirectory);
+            int totalFileStorage = 70000000;
+            int unusedSpaceThreshold = 30000000;
             while (!complete)
             {
                 string input = Console.ReadLine();
@@ -95,12 +98,21 @@ namespace Day7
                     currentDirectory.AddFile(newFile);
                 }
             }
-            int total = 0;
-            foreach(Directory directory in justRight)
+            while (stack.Count > 0)
             {
-                total += directory.Size;
+                Directory currentDirectory = stack.Peek();
+                int size = currentDirectory.CalculateSize();
+                stack.Pop();
             }
-            Console.WriteLine(total);
+            rootDirectory.OutputToConsole();
+            Console.WriteLine("Root Size: " + rootDirectory.Size);
+            int unusedSpace = totalFileStorage - rootDirectory.Size;
+            Console.WriteLine("Unused Space: " + unusedSpace);
+            int spaceNeeded = unusedSpaceThreshold - unusedSpace;
+            Console.WriteLine("Space Needed: " + spaceNeeded);
+            Directory smallestDirectory = rootDirectory;
+            rootDirectory.FindSmallestDirectoryAboveThreshold(spaceNeeded, ref smallestDirectory);
+            Console.WriteLine(smallestDirectory.Name + " " + smallestDirectory.Size);
         }
     }
     class Directory : File
@@ -110,12 +122,29 @@ namespace Day7
         {
             files = new List<File>();
         }
+        public override void OutputToConsole(int indent = 0)
+        {
+            for(int i = 0; i < indent; i++)
+            {
+                Console.Write(" ");
+            }
+            Console.WriteLine(ToString());
+            foreach(File child in files)
+            {
+                child.OutputToConsole(indent + 3);
+            }
+        }
+        public override string ToString()
+        {
+            return Name + " (dir, size = " + Size + ")";
+        }
         public void AddFile(File file)
         {
             files.Add(file);
         }
         public int CalculateSize()
         {
+            Size = 0;
             foreach(File child in files)
             {
                 Size += child.Size;
@@ -133,6 +162,24 @@ namespace Day7
             }
             return null;
         }
+        public void FindSmallestDirectoryAboveThreshold(int threshold, ref Directory smallestDirectory)
+        {
+            if (Size > threshold)
+            {
+                if(Size < smallestDirectory.Size)
+                {
+                    smallestDirectory = this;
+                }
+            }
+            foreach(File child in files)
+            {
+                if (child is Directory)
+                {
+                    Directory directory = (Directory)child;
+                    directory.FindSmallestDirectoryAboveThreshold(threshold, ref smallestDirectory);
+                }
+            }
+        }
     }
     class File
     {
@@ -142,6 +189,19 @@ namespace Day7
         {
             Size = 0;
             Name = name;
+        }
+        public virtual void OutputToConsole(int indent = 0)
+        {
+            for (int i = 0; i < indent; i++)
+            {
+                Console.Write(" ");
+            }
+            Console.WriteLine(ToString());
+            
+        }
+        public override string ToString()
+        {
+            return Name + " (file, size = " + Size + ")";
         }
     }
 }
