@@ -24,7 +24,6 @@
             int columns = lines[0].Length;
             int rows = lines.Count;
             int[,] forest = new int[rows, columns];
-            bool[,] visible = new bool[rows, columns];
             for (int row = 0; row < rows; row++)
             {
                 string line = lines[row];
@@ -33,96 +32,123 @@
                     char heightChar = line[column];
                     int treeHeight = int.Parse(heightChar.ToString());
                     forest[row, column] = treeHeight;
-                    visible[row, column] = false;
                 }
             }
-            int countTrees1 = 0;
-            int countTrees2 = 0;
-            for (int row = 0; row < rows; row++)
-            {
-                int tallestTree = -1;
-                int countCurrent = 0;
-                for (int column = 0; column < columns; column++)
-                {
-                    //go right
-                    int tree = forest[row, column];
-                    if(tree > tallestTree)
-                    {
-                        visible[row, column] = true;
-                        tallestTree = tree;
-                        countCurrent++;
-                    }
-                    countTrees1++;
-                }
-                Console.WriteLine("CountCurrent Right " + countCurrent);
-                countCurrent = 0;
-                tallestTree = -1;
-                for (int column = columns - 1; column >= 0; column--)
-                {
-                    //go left
-                    int tree = forest[row, column];
-                    if (tree > tallestTree)
-                    {
-                        visible[row, column] = true;
-                        tallestTree = tree;
-                        countCurrent++;
-                    }
-                    countTrees2++;
-                }
-                Console.WriteLine("CountCurrent Left " + countCurrent);
-            }
-            Console.WriteLine(countTrees1);
-            Console.WriteLine(countTrees2);
-            countTrees1 = 0;
-            countTrees2 = 0;
-            for (int column = 0; column < columns; column++)
-            {
-                int tallestTree = -1;
-                int countCurrent = 0;
-                for (int row = 0; row < rows; row++)
-                {
-                    //go down
-                    int tree = forest[row, column];
-                    if (tree > tallestTree)
-                    {
-                        visible[row, column] = true;
-                        tallestTree = tree;
-                        countCurrent++;
-                    }
-                    countTrees1++;
-                }
-                Console.WriteLine("CountCurrent Down " + countCurrent);
-                countCurrent = 0;
-                tallestTree = -1;
-                for (int row = rows - 1; row >= 0; row--)
-                {
-                    //go up
-                    int tree = forest[row, column];
-                    if (tree > tallestTree)
-                    {
-                        visible[row, column] = true;
-                        tallestTree = tree;
-                        countCurrent++;
-                    }
-                    countTrees2++;
-                }
-                Console.WriteLine("CountCurrent Up " + countCurrent);
-            }
-            Console.WriteLine(countTrees1);
-            Console.WriteLine(countTrees2);
-            int visibleTreeCount = 0;
 
+            int highestFound = 0;
             for (int row = 0; row < rows; row++)
             {
                 for (int column = 0; column < columns; column++)
                 {
-                    if(visible[row, column])
+                    int tree = forest[row, column];
+                    int product = 1;
+                    int count = GoUp(forest, row - 1, column, tree);
+                    product *= count;
+                    count = GoDown(forest, row + 1, rows, column, tree);
+                    product *= count;
+                    count = GoLeft(forest, row, column - 1, tree);
+                    product *= count;
+                    count = GoRight(forest, row, column + 1, columns, tree);
+                    product *= count;
+                    if(product> highestFound)
                     {
-                        visibleTreeCount++;
+                        highestFound = product;
                     }
+                    
                 }
             }
-            Console.WriteLine(visibleTreeCount);
+            
+            Console.WriteLine(highestFound);
+
+            int rowTest = 3;
+            int columnTest = 2;
+            int treeTest = forest[rowTest, columnTest];
+            int productTest = 1;
+            int countTest = GoUp(forest, rowTest - 1, columnTest, treeTest);
+            productTest *= countTest;
+            Console.WriteLine(countTest);
+            countTest = GoDown(forest, rowTest + 1, rows, columnTest, treeTest);
+            productTest *= countTest;
+            Console.WriteLine(countTest);
+            countTest = GoLeft(forest, rowTest, columnTest - 1, treeTest);
+            productTest *= countTest;
+            Console.WriteLine(countTest);
+            countTest = GoRight(forest, rowTest, columnTest + 1, columns, treeTest);
+            productTest *= countTest;
+            Console.WriteLine(countTest);
+            Console.WriteLine(productTest);
+        }
+        public static int GoUp(int[,] forest, int row, int column, int height)
+        {
+            if(row < 0)
+            {
+                return 0;
+            }
+            int count = 0;
+            int tree = forest[row, column];
+            if(tree >= height)
+            {
+                return 1;
+            }
+            if(row > 0)
+            {
+                count += GoUp(forest, row-1, column, height);
+            }
+            return count+1;
+        }
+        public static int GoDown(int[,] forest, int row, int rows, int column, int height)
+        {
+            if (row > rows-1)
+            {
+                return 0;
+            }
+            int count = 0;
+            int tree = forest[row, column];
+            if (tree >= height)
+            {
+                return 1;
+            }
+            if (row < rows-1)
+            {
+                count += GoDown(forest, row + 1, rows, column, height);
+            }
+            return count + 1;
+        }
+        public static int GoLeft(int[,] forest, int row, int column, int height)
+        {
+            if (column < 0)
+            {
+                return 0;
+            }
+            int count = 0;
+            int tree = forest[row, column];
+            if (tree >= height)
+            {
+                return 1;
+            }
+            if (column > 0)
+            {
+                count += GoLeft(forest, row, column-1, height);
+            }
+            return count + 1;
+        }
+        public static int GoRight(int[,] forest, int row, int column, int columns, int height)
+        {
+            if (column > columns-1)
+            {
+                return 0;
+            }
+            int count = 0;
+            int tree = forest[row, column];
+            if (tree >= height)
+            {
+                return 1;
+            }
+            if (column < columns - 1)
+            {
+                count += GoRight(forest, row, column + 1, columns, height);
+            }
+            return count + 1;
         }
     }
 }
