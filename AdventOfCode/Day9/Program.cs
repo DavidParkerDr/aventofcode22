@@ -19,6 +19,13 @@ namespace Day9
             int minX = 0;
             int minY = 0;
             List<Coordinate> list = new List<Coordinate>();
+            List<Coordinate> chain = new List<Coordinate>();
+            //chain.Add(headPosition);
+            for(int i = 0; i < 8; i++)
+            {
+                chain.Add(new Coordinate(0,0));
+            }
+            //chain.Add(tailPosition);
             list.Add(tailPosition);
             while (!complete)
             {
@@ -35,9 +42,16 @@ namespace Day9
                 for(int i=0; i<steps; i++)
                 {
                     headPosition.TakeStep(direction);
+                    Coordinate previousKnot = headPosition;
+                    for(int j=0; j < chain.Count; j++)
+                    {
+                        Coordinate nextKnot = chain[j];
+                        nextKnot.Follow(previousKnot);
+                        previousKnot = nextKnot;
+                    }
                     //Console.WriteLine("Head: " + headPosition.ToString());
                     Coordinate newTailPosition = new Coordinate(tailPosition.X, tailPosition.Y);
-                    newTailPosition.Follow(headPosition);
+                    newTailPosition.Follow(previousKnot);
                     tailPosition = newTailPosition;
                     //Console.WriteLine("Tail: " + tailPosition.ToString());
                     if(!ListContainsCoordinate(list, newTailPosition))
