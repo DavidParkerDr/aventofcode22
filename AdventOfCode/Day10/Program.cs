@@ -46,16 +46,28 @@
 
             }
             values.Add(register);
-            int total = 0;
-            int startIndex = 19;
-            int interval = 40;
-            for (int i = startIndex; i < values.Count; i+= interval)
+            int count = 0;
+            int screenWidth = 40;
+            int spriteWidth = 1;
+            foreach(int value in values)
             {
-                int value = values[i];
-                total += value * (i+1);
-                
+                int leftBound = value - spriteWidth;
+                int rightBound = value + spriteWidth;
+                if(count <= rightBound && count >= leftBound)
+                {
+                    Console.Write("#");
+                }
+                else
+                {
+                    Console.Write(".");
+                }
+                count++;
+                if(count == screenWidth)
+                {
+                    Console.WriteLine();
+                    count = 0;
+                }
             }
-            Console.WriteLine(total);
         }
     }
 }
