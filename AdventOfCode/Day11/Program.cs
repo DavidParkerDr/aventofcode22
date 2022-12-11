@@ -1,4 +1,6 @@
-﻿namespace Day11
+﻿using System.Numerics;
+
+namespace Day11
 {
     internal class Program
     {
@@ -42,7 +44,7 @@
                     string[] items = parts[1].Split(',');
                     foreach(string itemString in items)
                     {
-                        int worryLevel = int.Parse(itemString.Trim());
+                        long worryLevel = long.Parse(itemString.Trim());
                         Item item = new Item(worryLevel);
                         currentMonkey.AddItem(item);
                     }
@@ -56,10 +58,10 @@
                     string[] operationParts = operationString.Split(' ');
                     string operatorString = operationParts[1];
                     string operandString = operationParts[2];
-                    int operand = 0;
+                    long operand = 0;
                     if (operandString != "old")
                     {
-                        operand = int.Parse(operandString);
+                        operand = long.Parse(operandString);
                     }
                     else
                     {
@@ -73,7 +75,7 @@
                     // test
                     string[] parts = input.Split(' ');
                     string lastPartString = parts[parts.Length - 1];
-                    int lastPart = int.Parse(lastPartString);
+                    long lastPart = long.Parse(lastPartString);
                     currentMonkey.Test = lastPart;
                 }
                 else if (input[0] == 'I')
@@ -95,37 +97,72 @@
                     }
                 }
             }
+            long[] divisors = new long[monkeys.Count];
+            int index = 0;
             foreach(Monkey monkey in monkeys)
             {
+                divisors[index] = monkey.Test;
+                index++;
                 monkey.TrueMonkey = monkeys[monkey.TrueMonkeyId];
                 monkey.FalseMonkey = monkeys[monkey.FalseMonkeyId];
             }
-            int numberOfRounds = 20;
+            Monkey.LowestCommonMultiple = LowestCommonMultiple(divisors);
+            foreach (Monkey monkey in monkeys)
+            {
+                Console.WriteLine(monkey);
+            }
+            int numberOfRounds = 10000;
             for (int i = 0; i < numberOfRounds; i++)
             {
+                Console.WriteLine("Round " + i.ToString());
                 foreach (Monkey monkey in monkeys)
                 {
                     monkey.InspectItems();
                 }
+                //foreach (Monkey monkey in monkeys)
+                //{
+                //    Console.WriteLine(monkey);
+                //}
+            }
+            foreach (Monkey monkey in monkeys)
+            {
+                Console.WriteLine(monkey);
             }
             monkeys.Sort();
-            int monkeyBusiness = monkeys[0].InspectionCount * monkeys[1].InspectionCount;
+            
+            long monkeyBusiness = monkeys[0].InspectionCount * monkeys[1].InspectionCount;
             Console.WriteLine(monkeyBusiness);
         }
+        public static long LowestCommonMultiple(long[] numbers)
+        {
+            long answer = numbers[0];
+            for (int i = 1; i < numbers.Length; i++)
+            {
+                long number = numbers[i];
+                answer = number * answer / GreatestCommonDivisor(number, answer);
+            }
+            return answer;
+        }
+        public static long GreatestCommonDivisor(long a, long b)
+        {
+            return b == 0 ? a : GreatestCommonDivisor(b, a % b);
+        }
     }
+    
 }
 class Monkey : IComparable<Monkey>
 {
-    public int InspectionCount { get; set; }
+    public static long LowestCommonMultiple = 0;
+    public long InspectionCount { get; set; }
     public int Id { get; set; }
-    public int Test { get; set; }
-    public int Operand { get; set; }
+    public long Test { get; set; }
+    public long Operand { get; set; }
     public int TrueMonkeyId { get; set; }
     public int FalseMonkeyId { get; set; }
     public Monkey? TrueMonkey { get; set; }
     public Monkey? FalseMonkey { get; set; }
     public Queue<Item> Items { get; set; }
-    public delegate int OperationDelegate(int worryLevel);
+    public delegate void OperationDelegate(Item item);
     public OperationDelegate? Operation;
     public Monkey(int id)
     {
@@ -135,7 +172,8 @@ class Monkey : IComparable<Monkey>
     }
     public void InspectItems()
     {
-        while(Items.Count > 0)
+       // Console.WriteLine(this);
+        while (Items.Count > 0)
         {
             InspectItem();
         }
@@ -143,18 +181,24 @@ class Monkey : IComparable<Monkey>
     public void InspectItem()
     {
         Item currentItem = Items.Dequeue();
-        int worryLevel = Operation(currentItem.WorryLevel);
-        worryLevel = worryLevel / 3;
-        currentItem.WorryLevel = worryLevel;
-        if(worryLevel % Test == 0)
+        InspectionCount++;
+        Operation(currentItem);
+        //worryLevel = worryLevel / 3;
+        long testResult = (long)currentItem.WorryLevel % (long)Test;
+        //  Console.WriteLine("   Test: " + worryLevel + " % " + Test + " = " + testResult);
+        if (testResult == 0)
         {
             TrueMonkey.AddItem(currentItem);
+           // Console.WriteLine("   Throws: to Monkey " + TrueMonkeyId + " (True)");
         }
         else
         {
             FalseMonkey.AddItem(currentItem);
+           // Console.WriteLine("   Throws: to Monkey " + FalseMonkeyId + " (False)");
         }
-        InspectionCount++;
+       // Console.WriteLine();
+
+
     }
     public void AddItem(Item item)
     {
@@ -175,32 +219,52 @@ class Monkey : IComparable<Monkey>
             Operation = Add;
         }
     }
-    public int Multiply(int worryLevel)
+    public void Multiply(Item item)
     {
-        worryLevel = worryLevel * Operand;
-        return worryLevel;
+        
+        item.WorryLevel = (item.WorryLevel * Operand) % Monkey.LowestCommonMultiple;
+        
+        
+        //Console.WriteLine("   Inspects: " + worryLevel + " * " + Operand + " = " + newWorryLevel);
+        
     }
-    public int Add(int worryLevel)
+    public void Add(Item item)
     {
-        worryLevel = worryLevel + Operand;
-        return worryLevel;
+        item.WorryLevel = (item.WorryLevel + Operand) % Monkey.LowestCommonMultiple;
     }
-    public int Square(int worryLevel)
+    public void Square(Item item)
     {
-        worryLevel = (worryLevel * worryLevel);
-        return worryLevel;
+        item.WorryLevel = (item.WorryLevel * item.WorryLevel) % Monkey.LowestCommonMultiple;
     }
 
     public int CompareTo(Monkey? other)
     {
-        return other.InspectionCount - InspectionCount;
+        return (int)(other.InspectionCount - InspectionCount);
+    }
+    public override string ToString()
+    {
+        string returnString = "Monkey " + Id + "(" + InspectionCount + ") : ";
+        foreach(Item item in Items)
+        {
+            returnString += " " + item.ToString() + ",";
+        }
+        return returnString;
     }
 }
 class Item
 {
-    public int WorryLevel { get; set; }
-    public Item(int worryLevel)
+    static int Count = 0;
+    public int Id { get; set; }
+    public long WorryLevel { get; set; }
+    public Item(long worryLevel)
     {
         WorryLevel = worryLevel;
+        Id = Count++;
+    }
+    public override string ToString()
+    {
+        string returnString = "Item " + Id + "(" + WorryLevel + ")";
+        
+        return returnString;
     }
 }
