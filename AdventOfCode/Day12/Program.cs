@@ -26,21 +26,19 @@
             int numRows = lines.Count;
             int numColumns = lines[0].Length;
             Square[,] squares = new Square[numRows, numColumns];
-            Square startSquare = null;
-            Square endSquare = null;
             List<Square> unvisitedSquares = new List<Square>();
+            List<Square> possibleStartSquares = new List<Square>();
+            Square endSquare = null;
             for(int row = 0; row < numRows; row++)
             {
                 string line = lines[row];
                 for(int column = 0; column < numColumns; column++)
                 {
                     char height = line[column];
-                    bool isStartSquare = false;
                     bool isEndSquare = false;
                     if (height == 'S')
                     {
                         height = 'a';
-                        isStartSquare = true;
                     }
                     else if(height == 'E')
                     {
@@ -57,10 +55,9 @@
                     {
                         square.AddLeft(squares[row, column - 1]);
                     }
-                    if (isStartSquare)
+                    if (height == 'a')
                     {
-                        startSquare = square;
-                        square.TentativeDistance = 0;
+                        possibleStartSquares.Add(square);
                     }
                     else
                     {
@@ -69,21 +66,51 @@
                             square.IsEndSquare = true;
                             endSquare = square;
                         }
-                        unvisitedSquares.Add(square);
+                        
                     }
                 }
             }
-            Square currentSquare = startSquare;
-            do
+            int shortestRoute = -1;
+            int count = 0;
+            
+            foreach (Square startSquare in possibleStartSquares)
             {
-               // DisplayGrid(squares);
-                currentSquare.Visit();
-                unvisitedSquares.Remove(currentSquare);
-                currentSquare = FindLowestUnvisitedSquare(unvisitedSquares);
-            }
-            while (unvisitedSquares.Count > 0);
+                Console.Write("Possible Start: " + count++ );
+                foreach(Square square in squares)
+                {
+                    square.Visited = false;
+                    square.TentativeDistance = -1;
+                    unvisitedSquares.Add(square);
+                }
+                Square currentSquare = startSquare;
+                currentSquare.TentativeDistance = 0;
+                do
+                {
+                    // DisplayGrid(squares);
+                    currentSquare.Visit();
+                    unvisitedSquares.Remove(currentSquare);
+                    currentSquare = FindLowestUnvisitedSquare(unvisitedSquares);
+                    if(currentSquare.TentativeDistance == -1)
+                    {
+                        unvisitedSquares.Clear();
+                    }
+                }
+                while (unvisitedSquares.Count > 0);
+                if (endSquare.TentativeDistance != -1)
+                {
+                    Console.WriteLine(" Route Length: " + endSquare.TentativeDistance);
+                    if (shortestRoute == -1 || shortestRoute > endSquare.TentativeDistance)
+                    {
+                        shortestRoute = endSquare.TentativeDistance;
 
-            Console.WriteLine(endSquare.TentativeDistance);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine(" No valid route.");
+                }
+            }
+            Console.WriteLine(shortestRoute);
         }
         public static Square FindLowestUnvisitedSquare(List<Square> unvisitedSquares)
         {
