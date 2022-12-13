@@ -10,7 +10,7 @@
                 Console.SetIn(sr);
             }
             bool complete = false;
-            List<PacketList> pairs = new List<PacketList>();
+            List<Packet> packets = new List<Packet>();
             List<int> correctIndices = new List<int>();
             int count = 1;
             while (!complete)
@@ -57,7 +57,7 @@
                             PacketList packetList = stack.Pop();
                             if(stack.Count == 0)
                             {
-                                pairs.Add(packetList);
+                                packets.Add(packetList);
                             }
                         }
                         else
@@ -66,32 +66,58 @@
                         }
                     }
                     continue;
-                }
+                }                
+            }
+            PacketList dividerList1 = new PacketList();
+            PacketLeaf dividerLeaf1 = new PacketLeaf(2);
+            dividerList1.AddPacket(dividerLeaf1);
+            PacketList divider1 = new PacketList();
+            divider1.AddPacket(dividerList1);
+            divider1.IsDivider = true;
+            packets.Add(divider1);
 
-                // we have a pair to consider
-                Console.WriteLine("Index " + count);
-                int compareResult = pairs[0].Compare(pairs[1]);
-                if(compareResult < 0)
-                {
-                    correctIndices.Add(count);
-                    Console.WriteLine(" correct.");
-                }
-                Console.WriteLine();
-                pairs.Clear();  
-                count++;
-            }
-            int result = 0;
-            foreach(int index in correctIndices)
+            PacketList dividerList2 = new PacketList();
+            PacketLeaf dividerLeaf2 = new PacketLeaf(6);
+            dividerList2.AddPacket(dividerLeaf2);
+            PacketList divider2 = new PacketList();
+            divider2.AddPacket(dividerList2);
+            divider2.IsDivider = true;
+            packets.Add(divider2);
+
+            packets.Sort();
+            int packetCount = 1;
+            int result = 1;
+            foreach(Packet packet in packets)
             {
-                result += index;
+                Console.WriteLine(packet.ToString());
+                if(packet.IsDivider)
+                {
+                    result *= packetCount;
+                }
+                packetCount++;
             }
-            Console.WriteLine(result);
+            Console.WriteLine(result.ToString());
         }
     }
-    abstract class Packet
+    abstract class Packet : IComparable<Packet>
     {
+        public bool IsDivider { get; set; }
         public abstract int Compare(PacketList other);
         public abstract int Compare(PacketLeaf other);
+
+        public int CompareTo(Packet? other)
+        {
+            int compareResult = 0;
+            if (other is PacketList)
+            {
+                compareResult = Compare(other as PacketList);
+            }
+            else
+            {
+                compareResult = Compare(other as PacketLeaf);
+            }
+            return compareResult;
+        }
     }
     class PacketList : Packet
     {
@@ -99,6 +125,7 @@
         public PacketList()
         {
             packets = new List<Packet>();
+            IsDivider = false;
         }
         public void AddPacket(Packet packet)
         {
@@ -207,6 +234,7 @@
         public PacketLeaf(int value)
         {
             Value = value;
+            IsDivider = false;
         }
         public override string ToString()
         {
