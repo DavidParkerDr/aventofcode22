@@ -64,8 +64,16 @@
                 }
                 formations.Add(coordinates);
             }
-            Coordinate max = new Coordinate(maxX+1, maxY+1);
-            Coordinate min = new Coordinate(minX, 0);
+            
+
+            Coordinate floorStart = new Coordinate(minX - maxY, maxY + 2);
+            Coordinate floorEnd = new Coordinate(maxX + maxY, maxY + 2);
+            List<Coordinate> floor = new List<Coordinate>();
+            floor.Add(floorStart);
+            floor.Add(floorEnd);
+            formations.Add(floor);
+            Coordinate max = new Coordinate(maxX + maxY + 1, maxY + 2 + 1);
+            Coordinate min = new Coordinate(minX-maxY, 0);
             Cave cave = new Cave(min, max);
             foreach(List<Coordinate> formation in formations)
             {
@@ -119,14 +127,16 @@
             Coordinate adjustedPosition = position.Subtract(Min);
             Grid[adjustedPosition.X, adjustedPosition.Y] = '#';
         }
-        public bool AddSand(Coordinate position)
+        public bool AddSand(Coordinate position, Coordinate originalPosition)
         {
-            if (position.Y < Bounds.Y)
+            if(Grid[originalPosition.X, originalPosition.Y] == 'O')
             {
-                Grid[position.X, position.Y] = 'O';
-                return false;
+                return true;
             }
-            return true;
+            
+            Grid[position.X, position.Y] = 'O';
+            return false;
+            
         }
         public void Initialise()
         {
@@ -152,6 +162,7 @@
         public bool SpawnSand(Coordinate spawnSite)
         {
             Coordinate adjustedPosition = spawnSite.Subtract(Min);
+            Coordinate originalPosition = adjustedPosition;
             bool falling = true;
             do
             {
@@ -159,9 +170,9 @@
                 if(newPosition.Equals(adjustedPosition))
                 {
                     falling = false;
-                    return AddSand(newPosition);
+                    return AddSand(newPosition, originalPosition);
                 }
-                else if(InsideBounds(newPosition))
+                else if(!newPosition.Equals(originalPosition))
                 {
                     adjustedPosition = newPosition;
                 }
