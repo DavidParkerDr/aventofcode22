@@ -69,19 +69,27 @@
                             }
                             else
                             {
-                                for (int j = i+1; j < rowRangesAtRow.Count; )
+                                
+                                for (int j = 0; j < rowRangesAtRow.Count; )
                                 {
+                                    if(j==i)
+                                    {
+                                        j++;
+                                        continue;
+                                    }
                                     RowRange otherExistingRowRange = rowRangesAtRow[j];
                                     bool combinedAgain = existingRowRange.Combine(otherExistingRowRange);
                                     if(combinedAgain)
                                     {
                                         rowRangesAtRow.RemoveAt(j);
+                                        List<RowRange> dicRows = rowRanges[row];
                                     }
                                     else
                                     {
                                         j++;
                                     }
                                 }
+                                break;
                             }
                         }                        
                     }
@@ -94,20 +102,31 @@
                 }
 
             }
-            int totalWidth = 0;
-            List<RowRange> rowRangesAtFinalRow = rowRanges[2000000];
-            foreach(RowRange rowRange in rowRangesAtFinalRow)
+            int lowerBound = 0;
+            int upperBound = 4000000;
+            //upperBound = 20;
+            foreach(KeyValuePair<int, List<RowRange>> kvp in rowRanges)
             {
-                totalWidth += rowRange.Width;
-                foreach(Coordinate beacon in beacons)
+                if (kvp.Key >= lowerBound && kvp.Key <= upperBound)
                 {
-                    if(rowRange.InRange(beacon))
+                    List<RowRange> rowRangesAtRowFinal = kvp.Value;
+                    if (rowRangesAtRowFinal.Count > 1)
                     {
-                        totalWidth--;
+                        RowRange rowRange1 = rowRangesAtRowFinal[0];
+                        RowRange rowRange2 = rowRangesAtRowFinal[1];
+                        if(rowRange2.Start.X - rowRange1.End.X == 2)
+                        {
+                            long x = rowRange1.End.X + 1;
+                            long y = kvp.Key;
+                            long frequency = (x * 4000000) + y;
+                            Console.WriteLine(frequency);
+                        }
+
+                        
                     }
                 }
             }
-            Console.WriteLine(totalWidth);
+            
            // cave.DrawRow(10);
         }
         public static List<RowRange> MarkDeadZone(Coordinate sensor, int manhattanDistance)
