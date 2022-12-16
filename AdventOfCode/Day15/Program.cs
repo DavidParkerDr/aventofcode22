@@ -17,6 +17,7 @@
             int maxY = -1;
             List<Coordinate> sensors = new List<Coordinate>();
             List<Coordinate> beacons = new List<Coordinate>();
+            Dictionary<int, List<RowRange>> rowRanges = new Dictionary<int, List<RowRange>>();
             while (!complete)
             {
                 string input = Console.ReadLine();
@@ -35,71 +36,107 @@
                 Coordinate sensor = new Coordinate(int.Parse(sensorParts[0]), int.Parse(sensorParts[1]));
                 sensors.Add(sensor);
                 Coordinate beacon = new Coordinate(int.Parse(beaconParts[0]), int.Parse(beaconParts[1]));
-                beacons.Add(beacon);
+                bool containsBeacon = false;
+                foreach (Coordinate existingBeacon in beacons)
+                {
+                    if(existingBeacon.Equals(beacon))
+                    {
+                        containsBeacon = true;
+                    }
+                }
+                if (!containsBeacon)
+                {
+                    beacons.Add(beacon);
+                }
+            
+                
                 Coordinate difference = beacon.Subtract(sensor);
                 int manhattanDistance = Math.Abs(difference.X) + Math.Abs(difference.Y);
-                if (firstCoordinate)
+                List<RowRange> rows = MarkDeadZone(sensor, manhattanDistance);  
+                foreach(RowRange rowRange in rows)
                 {
-                    minX = sensor.X - manhattanDistance;
-                    maxX = sensor.X + manhattanDistance;
-                    minY = sensor.Y - manhattanDistance;
-                    maxY = sensor.Y + manhattanDistance;
-                    firstCoordinate = false;
-                }
-                else
-                {
-                    if (sensor.X + manhattanDistance > maxX)
+                    int row = rowRange.Row;
+                    if (rowRanges.ContainsKey(row))
                     {
-                        maxX = sensor.X + manhattanDistance;
+                        List<RowRange> rowRangesAtRow = rowRanges[row];
+                        for (int i = 0; i < rowRangesAtRow.Count; i++)
+                        {
+                            RowRange existingRowRange = rowRangesAtRow[i];
+                            bool combined = existingRowRange.Combine(rowRange);
+                            if (!combined)
+                            {
+                                rowRangesAtRow.Add(rowRange);
+                            }
+                            else
+                            {
+                                for (int j = i+1; j < rowRangesAtRow.Count; )
+                                {
+                                    RowRange otherExistingRowRange = rowRangesAtRow[j];
+                                    bool combinedAgain = existingRowRange.Combine(otherExistingRowRange);
+                                    if(combinedAgain)
+                                    {
+                                        rowRangesAtRow.RemoveAt(j);
+                                    }
+                                    else
+                                    {
+                                        j++;
+                                    }
+                                }
+                            }
+                        }                        
                     }
-                    if (sensor.Y + manhattanDistance > maxY)
+                    else
                     {
-                        maxY = sensor.Y + manhattanDistance;
-                    }
-                    if (sensor.X - manhattanDistance < minX)
-                    {
-                        minX = sensor.X - manhattanDistance;
-                    }
-                    if (sensor.Y - manhattanDistance < minY)
-                    {
-                        minY = sensor.Y - manhattanDistance;
+                        List<RowRange> rowRangesAtRow = new List<RowRange>();
+                        rowRangesAtRow.Add(rowRange);
+                        rowRanges[row] = rowRangesAtRow;
                     }
                 }
-                if (beacon.X + manhattanDistance > maxX)
-                {
-                    maxX = beacon.X + manhattanDistance;
-                }
-                if (beacon.Y + manhattanDistance > maxY)
-                {
-                    maxY = beacon.Y + manhattanDistance;
-                }
-                if (beacon.X - manhattanDistance < minX)
-                {
-                    minX = beacon.X - manhattanDistance;
-                }
-                if (beacon.Y - manhattanDistance < minY)
-                {
-                    minY = beacon.Y - manhattanDistance;
-                }                
 
             }
-            Coordinate min = new Coordinate(minX, minY);
-            Coordinate max = new Coordinate(maxX, maxY);
-            Coordinate range = max.Subtract(min);
-            Console.WriteLine(range);
-            Cave cave = new Cave(min, max);
-            for(int i = 0; i < sensors.Count; i++)
+            int totalWidth = 0;
+            List<RowRange> rowRangesAtFinalRow = rowRanges[2000000];
+            foreach(RowRange rowRange in rowRangesAtFinalRow)
             {
-                Coordinate sensor = sensors[i];
-                
-                Coordinate beacon = beacons[i];
-                cave.AddPair(sensor, beacon);
+                totalWidth += rowRange.Width;
+                foreach(Coordinate beacon in beacons)
+                {
+                    if(rowRange.InRange(beacon))
+                    {
+                        totalWidth--;
+                    }
+                }
             }
-          //  cave.Draw();
-            int deadZone =cave.CountDeadZoneInRow(2000000);
-            Console.WriteLine(deadZone);
+            Console.WriteLine(totalWidth);
            // cave.DrawRow(10);
-
+        }
+        public static List<RowRange> MarkDeadZone(Coordinate sensor, int manhattanDistance)
+        {
+            List<RowRange> list = new List<RowRange>();
+            int yTop = sensor.Y - manhattanDistance;
+            int yBottom = sensor.Y + manhattanDistance;
+            int count = -1;
+            for (int y = yTop; y <= sensor.Y; y++)
+            {
+                count++;
+                int xLeft = sensor.X - count;
+                int xRight = sensor.X + count;
+                Coordinate start = new Coordinate(xLeft, y);
+                Coordinate end = new Coordinate(xRight, y);
+                RowRange range = new RowRange(start, end);
+                list.Add(range);
+            }
+            for (int y = sensor.Y; y <= yBottom; y++)
+            {
+                int xLeft = sensor.X - count;
+                int xRight = sensor.X + count;
+                Coordinate start = new Coordinate(xLeft, y);
+                Coordinate end = new Coordinate(xRight, y);
+                RowRange range = new RowRange(start, end);
+                list.Add(range);
+                count--;
+            }
+            return list;
         }
     }
     class Cave
@@ -212,6 +249,71 @@
                 Console.Write(Grid[column, adjustedRow]);
             }
             Console.WriteLine();
+        }
+    }
+    class RowRange
+    {
+        public int Row { get; set; }
+        public int Width { get; set; }
+        public Coordinate Start { get; set; }
+        public Coordinate End { get; set; }
+        public RowRange(Coordinate start, Coordinate end)
+        {
+            Start = start;
+            End = end;
+            Row = start.Y;
+            Width = end.X - start.X;
+        }
+        public bool InRange(Coordinate position)
+        {
+            if(position.Y != Row)
+            {
+                return false;
+            }
+            if(position.X >= Start.X && position.X <= End.X)
+            {
+                return true;
+            }
+            return false;
+        }
+        public void CalculateWidth()
+        {
+            Width = (End.X - Start.X) + 1;
+            
+        }
+        public bool Combine(RowRange other)
+        {
+            bool combined = false;
+
+            if(other.Start.X >= Start.X && other.End.X <= End.X)
+            {
+                //other wholly in this
+                return true;
+            }
+
+            if(other.Start.X <= Start.X)
+            {
+                if(other.End.X >= Start.X)
+                {
+                    Start = other.Start;
+                    
+                    combined = true;
+                }
+            }
+            if(other.Start.X <= this.End.X)
+            {
+                if (other.End.X >= this.End.X)
+                {
+                    End = other.End;
+                    combined = true;
+                }
+            }
+            CalculateWidth();
+            return combined;
+        }
+        public override string ToString()
+        {
+            return Start + " -> " + End + " (" + Width + ")";
         }
     }
     class Coordinate
